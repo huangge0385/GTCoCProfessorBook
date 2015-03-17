@@ -4,7 +4,7 @@ Function:
 
 Crawl Professor's Website
 
-![](demo.gif)
+
 
 How to use
 
