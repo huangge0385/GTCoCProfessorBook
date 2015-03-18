@@ -101,7 +101,7 @@ baseUrl = 'http://www.cc.gatech.edu/people/faculty'
 cocp = cocprofessor(baseUrl)
 #tptal pages
 totalNumber = cocp.pageTotalNumber(baseUrl)
-
+count = 1
 
 for i in range(1,int(totalNumber) + 1):
         
@@ -109,40 +109,54 @@ for i in range(1,int(totalNumber) + 1):
 #for page one
 
     onePageUrls = cocp.urlonepage(baseUrl, i)
-    count = 1
+    
     for onePageUrl in onePageUrls:
-        print onePageUrl
+
         detailUrl = cocp.getDetailUrl(onePageUrl)
+        
 
         if detailUrl != None:
 
-            
+
             responsePage = urllib2.urlopen(detailUrl)
 
             prepareFile = responsePage.read().decode('utf-8')
-            #find all css
+            #fix all css
             patterntemp = re.compile('<link(.*?)href=.(.*?)"',re.S)
             items = re.findall(patterntemp,prepareFile)
+
             for item in items:
-                stritem = item[1]
-                #filter all ? 
-                temp = re.sub("\?","\?",stritem)
-                if temp != None:
-                    stritem = temp
-                prepareFile = re.sub(stritem, detailUrl + item[1],prepareFile)
+                stritem = item[1]   
 
-            #find all js
-            patterntempjs = re.compile('<script(.*?)src=.(.*?).>',re.S)
+
+
+                
+                if not stritem.startswith('http://'):
+                #filter all ? 
+
+                    temp = re.sub("\?","\?",stritem)
+                    if temp != None:
+                        stritem = temp
+
+                    prepareFile = re.sub(stritem, detailUrl + item[1],prepareFile)
+
+            #fix all js
+            patterntempjs = re.compile('<script(.*?)src="(.*?).>',re.S)
             itemsjs = re.findall(patterntempjs,prepareFile)
-            
+            i = 1
             for itemjs in itemsjs:
-
+                
                 stritemjs = itemjs[1]
+
+
+                i += 1
                 #filter all ? 
-                tempjs = re.sub("\?","\?",stritemjs)
-                if tempjs != None:
-                    stritemjs = tempjs
-                prepareFile = re.sub(stritemjs, detailUrl + itemjs[1],prepareFile)
+                if not stritemjs.startswith('http://'):
+
+                    tempjs = re.sub("\?","\?",stritemjs)
+                    if tempjs != None:
+                        stritemjs = tempjs
+                    #prepareFile = re.sub(stritemjs, detailUrl + itemjs[1],prepareFile)
 
             #print item[1]
 
@@ -153,7 +167,7 @@ for i in range(1,int(totalNumber) + 1):
             fileName =  str(count) + ".html"
             f = open(fileName,"w+")
             f.write(url2)
-            print "now downloading website" + str(count)
+            print "now downloading website " + str(count) + " for "
             f.write(prepareFile.encode('utf-8'))
             count += 1 
 
@@ -172,7 +186,8 @@ for i in range(1,int(totalNumber) + 1):
         
         print detailUrl
 
-         
+
+
 
 
     
