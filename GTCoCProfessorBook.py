@@ -2,6 +2,7 @@
 import urllib
 import urllib2
 import re
+import threading
 
 class cocprofessor:
 
@@ -100,8 +101,7 @@ baseUrl = 'http://www.cc.gatech.edu/people/faculty'
 cocp = cocprofessor(baseUrl)
 #tptal pages
 totalNumber = cocp.pageTotalNumber(baseUrl)
-fileName =  "professorWebsite.txt"
-f = open(fileName,"w+")
+
 
 for i in range(1,int(totalNumber) + 1):
         
@@ -112,19 +112,69 @@ for i in range(1,int(totalNumber) + 1):
     count = 1
     for onePageUrl in onePageUrls:
         print onePageUrl
-        iwant = cocp.getDetailUrl(onePageUrl)
+        detailUrl = cocp.getDetailUrl(onePageUrl)
 
-        if iwant != None:
-            prepareFile = iwant + "\n"
+        if detailUrl != None:
+
+            
+            responsePage = urllib2.urlopen(detailUrl)
+
+            prepareFile = responsePage.read().decode('utf-8')
+            #find all css
+            patterntemp = re.compile('<link(.*?)href=.(.*?)"',re.S)
+            items = re.findall(patterntemp,prepareFile)
+            for item in items:
+                stritem = item[1]
+                #filter all ? 
+                temp = re.sub("\?","\?",stritem)
+                if temp != None:
+                    stritem = temp
+                prepareFile = re.sub(stritem, detailUrl + item[1],prepareFile)
+
+            #find all js
+            patterntempjs = re.compile('<script(.*?)src=.(.*?).>',re.S)
+            itemsjs = re.findall(patterntempjs,prepareFile)
+            
+            for itemjs in itemsjs:
+
+                stritemjs = itemjs[1]
+                #filter all ? 
+                tempjs = re.sub("\?","\?",stritemjs)
+                if tempjs != None:
+                    stritemjs = tempjs
+                prepareFile = re.sub(stritemjs, detailUrl + itemjs[1],prepareFile)
+
+            #print item[1]
+
+
+
+#create file
+            url2 = detailUrl + "\n"
+            fileName =  str(count) + ".html"
+            f = open(fileName,"w+")
+            f.write(url2)
+            print "now downloading website" + str(count)
             f.write(prepareFile.encode('utf-8'))
+            count += 1 
+
+
+            line = urllib2.urlopen("http://www.gregoryabowd.com/sites/all/modules/third-party-modules/ckeditor/ckeditor.css?V").read()
+            l =  re.findall(r'url\((.*?)\)',line)
+
+
+ #   for l in  re.findall(r'url\((.*?)\)',line):
+  #      if l.startswith('http://') :
+          #  urls.append(l)
            # floorLine = "\n" + str(self.floor) + u"-----------------------------------------------------------------------------------------\n"
             #f.write("\n")
 
        
         
-        print iwant
+        print detailUrl
 
-        count += 1  
+         
+
+
     
 
 
